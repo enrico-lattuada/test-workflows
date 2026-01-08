@@ -28,3 +28,23 @@ jobs:
           # Ensure both branches are fetched
           git fetch origin main
           git fetch origin develop
+
+      - name: Checkout develop branch
+        run: git checkout develop
+
+      - name: Attempt merge
+        id: merge
+        run: |
+          # Create temp sync branch
+          SYNC_BRANCH="sync/main-to-develop-{{ github.run_id }}"
+          git checkout -b "$SYNC_BRANCH"
+
+          # Attempt merge
+          if git merge origin/main --no-edit; then
+            echo "merge_status=success" >> $GITHUB_OUTPUT
+            echo "sync_branch=$SYNC_BRANCH" >> $GITHUB_OUTPUT
+            git push origin "$SYNC_BRANCH"
+          else
+            echo "merge_status=conflict" >> $GITHUB_OUTPUT
+            git merge --abort
+          fi
