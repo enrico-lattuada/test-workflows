@@ -1,0 +1,80 @@
+name: Sync main to develop
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        
+      - name: Fetch branches
+        run: |
+          # Ensure both branches are fetched
+          git fetch origin main
+          git fetch origin develop
+
+      - name: Checkout develop branch
+        run: git checkout develop
+
+      - name: Attempt merge
+        id: merge
+        run: |
+          # Create temp sync branch
+          SYNC_BRANCH="sync/main-to-develop-${{ github.run_id }}"
+          git checkout -b "$SYNC_BRANCH"
+
+          # Attempt merge
+          if git merge origin/main --no-edit; then
+            echo "merge_status=success" >> $GITHUB_OUTPUT
+            echo "sync_branch=$SYNC_BRANCH" >> $GITHUB_OUTPUT
+            git push origin "$SYNC_BRANCH"
+          else
+            echo "merge_status=conflict" >> $GITHUB_OUTPUT
+            git merge --abort
+          fi
+
+      - name: Create Pull Request
+        id: create-pull-request
+        if: steps.merge.outputs.merge_status == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL=$(gh pr create \
+            --base develop \
+            --head ${{ steps.merge.outputs.sync_branch }} \
+            --title "Sync main to develop" \
+            --body "This PR was created automatically to sync changes from main to develop.")
+          echo "pull-request-url=$PR_URL" >> $GITHUB_OUTPUT
+
+      - name: Approve pull request
+        if: steps.merge.outputs.merge_status == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.PAT_APPROVE }}
+          PR_URL: ${{ steps.create-pull-request.outputs.pull-request-url }}
+        run: |
+          gh pr review "$PR_URL" --approve
+
+      - name: Enable auto-merge and delete branch
+        if: steps.merge.outputs.merge_status == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ steps.create-pull-request.outputs.pull-request-url }}
+        run: |
+          # Requires "Allow auto-merge" to be enabled in repository settings
+          gh pr merge "$PR_URL" --auto --merge --delete-branch
