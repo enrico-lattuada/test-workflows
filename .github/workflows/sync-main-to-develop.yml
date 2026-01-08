@@ -26,5 +26,5 @@ jobs:
       - name: Fetch branches
         run: |
           # Ensure both branches are fetched
-          git fetch origin main:main
-          git fetch origin develop:develop
+          git fetch origin main
+          git fetch origin develop
