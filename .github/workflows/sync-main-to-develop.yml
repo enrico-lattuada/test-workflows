@@ -64,6 +64,7 @@ jobs:
       - name: Enable auto-merge
         if: steps.merge.outputs.merge_status == 'success'
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ steps.create-pull-request.outputs.pull-request-url }}
         run: |
           gh pr merge "$PR_URL" --auto --merge --delete-branch
