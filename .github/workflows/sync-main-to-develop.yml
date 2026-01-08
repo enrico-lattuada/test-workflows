@@ -68,5 +68,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ steps.create-pull-request.outputs.pull-request-url }}
         run: |
+          # Approve the PR for auto-merge
+          gh pr review "$PR_URL" --approve
           # Requires "Allow auto-merge" to be enabled in repository settings
           gh pr merge "$PR_URL" --auto --merge --delete-branch
