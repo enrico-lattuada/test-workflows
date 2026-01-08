@@ -86,9 +86,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Create a branch for manual resolution
+          CONFLICT_BRANCH="conflict/main-to-develop-${{ github.run_id }}"
+          git checkout develop
+          git checkout -b "$CONFLICT_BRANCH"
+          git push origin "$CONFLICT_BRANCH"
+
+          # Create PR to notify about conflicts
           CONFLICT_PR_URL=$(gh pr create \
             --base develop \
-            --head main \
+            --head "$CONFLICT_BRANCH" \
             --title "Merge Conflicts: Sync main to develop" \
             --body "## ⚠️ Merge Conflicts Detected
 
