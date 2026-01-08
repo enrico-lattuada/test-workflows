@@ -52,15 +52,17 @@ jobs:
       - name: Create Pull Request
         id: create-pull-request
         if: steps.merge.outputs.merge_status == 'success'
-        uses: peter-evans/create-pull-request@v8
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: 'Sync main to develop'
-          body: 'This PR was created automatically to sync changes from main to develop.'
-          branch: develop
-          draft: false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL=$(gh pr create \
+            --base develop \
+            --head ${{ steps.merge.outputs.sync_branch }} \
+            --title "Sync main to develop" \
+            --body "This PR was created automatically to sync changes from main to develop.")
+          echo "pull-request-url=$PR_URL" >> $GITHUB_OUTPUT
 
-      - name: Enable auto-merge
+      - name: Enable auto-merge and delete branch
         if: steps.merge.outputs.merge_status == 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
