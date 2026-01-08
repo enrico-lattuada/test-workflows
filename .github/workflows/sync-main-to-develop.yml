@@ -68,6 +68,7 @@ jobs:
           GH_TOKEN: ${{ secrets.PAT_APPROVE }}
           PR_URL: ${{ steps.create-pull-request.outputs.pull-request-url }}
         run: |
+          gh pr review "$PR_URL" --comment -b "Auto-approving sync PR."
           gh pr review "$PR_URL" --approve
 
       - name: Enable auto-merge and delete branch
