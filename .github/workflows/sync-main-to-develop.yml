@@ -68,6 +68,7 @@ jobs:
           GH_TOKEN: ${{ secrets.PAT_APPROVE }}
           PR_URL: ${{ steps.create-pull-request.outputs.pull-request-url }}
         run: |
+          # Requires a Personal Access Token with 'pull request' scope
           gh pr review "$PR_URL" --comment -b "Auto-approving sync PR."
           gh pr review "$PR_URL" --approve
 
@@ -79,3 +80,25 @@ jobs:
         run: |
           # Requires "Allow auto-merge" to be enabled in repository settings
           gh pr merge "$PR_URL" --auto --merge --delete-branch
+
+      - name: Create merge conflicts pull request
+        if: steps.merge.outputs.merge_status == 'conflict'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CONFLICT_PR_URL=$(gh pr create \
+            --base develop \
+            --head main \
+            --title "Merge Conflicts: Sync main to develop" \
+            --body "## ⚠️ Merge Conflicts Detected
+
+          This automated sync from \`main\` to \`develop\` has conflicts that require manual resolution.
+
+          ### Steps to resolve:
+          1. Checkout this branch locally
+          2. Merge \`main\` into this branch: \`git merge origin/main\`
+          3. Resolve conflicts
+          4. Push and complete this PR
+
+          /cc @${{ github.repository_owner }}")
+          echo "conflict-pull-request-url=$CONFLICT_PR_URL" >> $GITHUB_OUTPUT
