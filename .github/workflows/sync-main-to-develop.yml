@@ -36,7 +36,7 @@ jobs:
         id: merge
         run: |
           # Create temp sync branch
-          SYNC_BRANCH="sync/main-to-develop-{{ github.run_id }}"
+          SYNC_BRANCH="sync/main-to-develop-${{ github.run_id }}"
           git checkout -b "$SYNC_BRANCH"
 
           # Attempt merge
