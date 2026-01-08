@@ -57,8 +57,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           title: 'Sync main to develop'
           body: 'This PR was created automatically to sync changes from main to develop.'
-          branch: ${{ steps.merge.outputs.sync_branch }}
-          base: develop
+          branch: develop
           draft: false
 
       - name: Enable auto-merge
