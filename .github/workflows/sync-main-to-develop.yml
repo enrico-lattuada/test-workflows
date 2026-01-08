@@ -48,3 +48,22 @@ jobs:
             echo "merge_status=conflict" >> $GITHUB_OUTPUT
             git merge --abort
           fi
+
+      - name: Create Pull Request
+        id: create-pull-request
+        if: steps.merge.outputs.merge_status == 'success'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: 'Sync main to develop'
+          body: 'This PR was created automatically to sync changes from main to develop.'
+          branch: ${{ steps.merge.outputs.sync_branch }}
+          base: develop
+          draft: false
+
+      - name: Enable auto-merge
+        if: steps.merge.outputs.merge_status == 'success'
+        env:
+          PR_URL: ${{ steps.create-pull-request.outputs.pull-request-url }}
+        run: |
+          gh pr merge "$PR_URL" --auto --merge --delete-branch
