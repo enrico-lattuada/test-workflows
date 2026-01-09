@@ -69,8 +69,8 @@ jobs:
           PR_URL: ${{ steps.create-pull-request.outputs.pull-request-url }}
         run: |
           # Requires a Personal Access Token with 'pull request' scope
-          gh pr review "$PR_URL" --comment -b "Auto-approving sync PR."
-          gh pr review "$PR_URL" --approve
+          # gh pr review "$PR_URL" --comment -b "Auto-approving sync PR."
+          gh pr review "$PR_URL" --approve -b "Auto-approving sync PR."
 
       - name: Enable auto-merge and delete branch
         if: steps.merge.outputs.merge_status == 'success'
