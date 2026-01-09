@@ -65,11 +65,10 @@ jobs:
       - name: Approve pull request
         if: steps.merge.outputs.merge_status == 'success'
         env:
-          GH_TOKEN: ${{ secrets.PAT_APPROVE }}
+          GH_TOKEN: ${{ secrets.PAT_APPROVE_2 }}
           PR_URL: ${{ steps.create-pull-request.outputs.pull-request-url }}
         run: |
-          # Requires a Personal Access Token with 'pull request' scope
-          # gh pr review "$PR_URL" --comment -b "Auto-approving sync PR."
+          # Requires a Personal Access Token with 'pull request' read+write scope
           gh pr review "$PR_URL" --approve -b "Auto-approving sync PR."
 
       - name: Enable auto-merge and delete branch
